@@ -9,4 +9,10 @@ function expand_tab() {
 }
 zle -N expand_tab
 
+function copy_cwd() {
+    echo "${PWD}" | tr -d "\n" | pbcopy
+}
+zle -N copy_cwd
+
 bindkey "^i" expand_tab
+bindkey "^[d" copy_cwd
