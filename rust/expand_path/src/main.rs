@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::Path;
 
 fn main() {
@@ -15,8 +16,25 @@ fn main() {
 }
 
 pub fn transform(path: &str) -> String {
-    match Path::new(path).canonicalize() {
-        Ok(path_buf) => path_buf.to_str().unwrap().to_string(),
+    // ファイルがシンボリックリンクか確認
+    match fs::symlink_metadata(path) {
+        Ok(metadata) => {
+            // シンボリックリンクだったらリンク先を返す
+            if metadata.file_type().is_symlink() {
+                match fs::read_link(path) {
+                    Ok(link_path) => link_path.to_str().unwrap().to_string(),
+                    Err(_) => path.to_string(),
+                }
+            }
+            // シンボリックリンクでなければ絶対パスを返す
+            else {
+                match Path::new(path).canonicalize() {
+                    Ok(abs_path) => abs_path.to_str().unwrap().to_string(),
+                    Err(_) => path.to_string(),
+                }
+            }
+        }
+        // 何らかの理由でメタデータ取得に失敗したら元のpathを返す
         Err(_) => path.to_string(),
     }
 }
@@ -61,9 +79,13 @@ mod tests {
         let path = "/tmp/powerlog/";
         let abspath = transform(path);
         assert_eq!(abspath, "/private/tmp/powerlog");
-        let path = "/aaa/";
+        let path = "/NotExist/";
         let abspath = transform(path);
-        assert_eq!(abspath, "/aaa/");
+        assert_eq!(abspath, "/NotExist/");
+        let curdir = std::env::current_dir().unwrap();
+        let path = "src";
+        let abspath = transform(path);
+        assert_eq!(abspath, curdir.join("src").to_string_lossy().to_string());
     }
     #[test]
     fn test_find_word_boundaries() {
