@@ -1,11 +1,10 @@
 NINJA_DIR=${NINJA_DIR-${0:A:h}}
 
 function expand_tab() {
-    if [[ "${CURSOR}" = "${#BUFFER}" ]] || [[ "${RBUFFER[1]}" = " " ]]; then
-        zle expand-or-complete
-    else
+    if [[ "${CURSOR}" != "${#BUFFER}" ]] && [[ "${RBUFFER[1]}" != " " ]]; then
         BUFFER="${LBUFFER} ${RBUFFER}"
     fi
+    zle expand-or-complete
 }
 zle -N expand_tab
 
