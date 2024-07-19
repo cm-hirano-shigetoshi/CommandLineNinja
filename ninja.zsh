@@ -13,6 +13,11 @@ function copy_cwd() {
 }
 zle -N copy_cwd
 
+function copy_buffer() {
+    echo "${BUFFER}" | tr -d "\n" | pbcopy
+}
+zle -N copy_buffer
+
 function expand_filepath() {
     read _CURSOR BUFFER <<< $(${NINJA_DIR}/rust/expand_path/target/release/expand_path "${BUFFER}" $CURSOR)
     CURSOR=$_CURSOR
@@ -22,4 +27,5 @@ zle -N expand_filepath
 
 bindkey "^i" expand_tab
 bindkey "^[d" copy_cwd
+bindkey "^[c" copy_buffer
 bindkey "^[e" expand_filepath
